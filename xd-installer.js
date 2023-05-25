@@ -86,13 +86,17 @@ const file_request  = https.get(plugin_url, function(response) {
 
         } );
 
-        fs.unlink( temp_file );
+        setTimeout( delete_temp, 1000 );
 
         console.log('Plugin Installed, Please Restart xd');
-        process.exit();
+
 
     });
 });
 
+function delete_temp(){
+    fs.unlinkSync( temp_file );
+    process.exit();
+}
 
 //console.log(result)
