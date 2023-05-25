@@ -15,22 +15,25 @@ const plugin_base_url   = 'https://dl.daneshjooyar.com/mvie/Moodi_Hamed/Adobe-Xd
 
 let args                = process.argv.filter( arg => arg.indexOf('install=') === 0 );
 if( ! args.length ){
-    console.log('Plugin params not sent');
+    console.log('Plugin parameter for installation did not send');
     return;
 }
 
 if( ! fs.existsSync( xdInfoPathBackup ) ){
     fs.copyFileSync( xdInfoPath, xdInfoPathBackup );
-    console.log('Xd info plugins backed up');
+    console.log('Xd info plugins backed up...');
 }
 
 let xd_plugins_info     = JSON.parse( fs.readFileSync( xdInfoPath ) );
 
+let plugin_request_name = args[0].substring(8);
 let requested_plugin    = args[0].substring(8) + '.xdx';
 
+console.log('Getting plugin directory list...');
 let result              = request('GET', 'https://dl.daneshjooyar.com/mvie/Moodi_Hamed/Adobe-Xd/plugins/plugins.json');
 let remote_plugins      = JSON.parse( result.body );
 
+console.log('Check for plugin ' + plugin_request_name  + ' exists')
 let founded_plugin       = false;
 for( let i = 0; i < remote_plugins.plugins.length; i++ ){
     if( remote_plugins.plugins[i].file === requested_plugin ){
@@ -38,7 +41,7 @@ for( let i = 0; i < remote_plugins.plugins.length; i++ ){
         break
     }
 }
-console.log(founded_plugin)
+//console.log(founded_plugin)
 if( ! founded_plugin ){
     console.log('Not found plugin');
     return;
@@ -47,16 +50,16 @@ if( ! founded_plugin ){
 let plugin_url      = plugin_base_url + founded_plugin.file;
 let plugin_path     = `${xdPath}Plugins\\External\\${founded_plugin.id}_${founded_plugin.version}`;
 
-console.log('Downloading...');
+console.log('Downloading plugin, please wait...');
 const file          = fs.createWriteStream( temp_file );
 const file_request  = https.get(plugin_url, function(response) {
     response.pipe(file);
     // after download completed close filestream
     file.on("finish", () => {
         file.close();
-
+        console.log('Download Finished')
         const zip = new AdmZip( temp_file );
-
+        console.log('Installing plugin....')
         zip.extractAllTo( plugin_path );
 
         /**
@@ -86,13 +89,15 @@ const file_request  = https.get(plugin_url, function(response) {
 
         } );
 
-        fs.unlink( temp_file );
+        setTimeout( delete_temp, 1000 );
 
-        console.log('Plugin Installed, Please Restart xd');
-        process.exit();
+        console.log('Plugin Installed, Please Restart xd, Or use Ctrl+Shift+R or use plugins > development > reload plugins menu');
+
 
     });
 });
 
-
-//console.log(result)
+function delete_temp(){
+    fs.unlinkSync( temp_file );
+    process.exit();
+}
