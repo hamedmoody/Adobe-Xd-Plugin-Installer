@@ -19,12 +19,15 @@ if( ! args.length ){
     return;
 }
 
-if( ! fs.existsSync( xdInfoPathBackup ) ){
+if( ! fs.existsSync( xdInfoPathBackup ) && fs.existsSync( xdInfoPath ) ){
     fs.copyFileSync( xdInfoPath, xdInfoPathBackup );
     console.log('Xd info plugins backed up...');
 }
 
-let xd_plugins_info     = JSON.parse( fs.readFileSync( xdInfoPath ) );
+let xd_plugins_info = {plugins: []}
+if( fs.existsSync( xdInfoPath ) ){
+    xd_plugins_info     = JSON.parse( fs.readFileSync( xdInfoPath ) );
+}
 
 let plugin_request_name = args[0].substring(8);
 let requested_plugin    = args[0].substring(8) + '.xdx';
